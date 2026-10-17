@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard</title>
+  <title>General Journal | CRT Financial System</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -808,6 +808,18 @@
         flex-wrap: wrap;
       }
     }
+  
+    /* ===== Idinagdag para sa JS ===== */
+    .table-scroll td.num { text-align: right; }
+    .filter-box button.active { background-color: rgb(241, 241, 255); border: 1px solid rgb(73, 73, 194); color: rgb(73, 73, 194); }
+    .badge { display: inline-block; padding: 5px 12px; border-radius: 50px; font-size: 13px; font-weight: 600; }
+    .badge-revenue { background: rgb(220, 252, 231); color: rgb(22, 128, 61); }
+    .badge-expense { background: rgb(254, 226, 226); color: rgb(220, 38, 38); }
+    .badge-asset { background: rgb(219, 234, 254); color: rgb(37, 99, 235); }
+    .badge-liability { background: rgb(254, 243, 199); color: rgb(180, 83, 9); }
+    .badge-equity { background: rgb(233, 231, 255); color: rgb(73, 73, 194); }
+    .status-ok { color: rgb(22, 128, 61); }
+    .status-bad { color: rgb(220, 38, 38); }
   </style>
 </head>
 
@@ -817,7 +829,7 @@
   <aside class="sidebar">
 
     <div class="logo-box">
-      <img src="imgsource/crtlogo.png">
+      <img src="/imgsrc/crtlogo.png">
 
       <p>CRT Financial<br>System</p>
     </div>
@@ -891,7 +903,7 @@
             <line x1="3" x2="21" y1="9" y2="9" />
             <line x1="3" x2="21" y1="15" y2="15" />
             <line x1="9" x2="9" y1="9" y2="21" />
-            <line x1="15" wx2="15" y1="9" y2="21" />
+            <line x1="15" x2="15" y1="9" y2="21" />
           </svg>
           <span>Financial Statements</span>
         </a>
@@ -951,7 +963,7 @@
           <label class="filter-title">Filter by:</label>
 
           <div class="filter-1">
-            <button class="btn-svg-1">
+            <button class="btn-svg-1 active" data-filter="all">
               <svg class="svg-all" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="lucide lucide-rows-4 preview-icon">
@@ -963,7 +975,7 @@
               <label>All Entries</label>
             </button>
 
-            <button class="btn-svg-2">
+            <button class="btn-svg-2" data-filter="revenue">
               <svg class="svg-rev" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="lucide lucide-move-up preview-icon">
@@ -973,7 +985,7 @@
               <label>Revenue</label>
             </button>
 
-            <button class="btn-svg-3">
+            <button class="btn-svg-3" data-filter="expense">
               <svg class="svg-exp" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="lucide lucide-move-down preview-icon">
@@ -985,7 +997,7 @@
           </div>
 
           <div class="filter-2">
-            <button class="btn-svg-4">
+            <button class="btn-svg-4" data-filter="asset">
               <svg class="svg-asset" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="lucide lucide-layers preview-icon">
@@ -997,7 +1009,7 @@
               <label>Asset</label>
             </button>
 
-            <button class="btn-svg-5">
+            <button class="btn-svg-5" data-filter="liability">
               <svg class="svg-liab" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="lucide lucide-hand-helping preview-icon">
@@ -1008,7 +1020,7 @@
               <label>Liability</label>
             </button>
 
-            <button class="btn-svg-6">
+            <button class="btn-svg-6" data-filter="equity">
               <svg class="svg-eq" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="lucide lucide-briefcase preview-icon">
@@ -1037,7 +1049,7 @@
             </tr>
             </thead>
 
-            <tbody>
+            <tbody id="journalRows">
               <tr>
                 <td colspan="6" class="empty">No records yet</td>
               </tr>
@@ -1075,7 +1087,7 @@
                   </svg>
                   <p> Total Debits</p>
                 </div>
-                <h3>00.00</h3>
+                <h3 id="summaryDebits">₱0.00</h3>
               </div>
 
               <div class="summary-card">
@@ -1088,7 +1100,7 @@
                   </svg>
                   <p> Total Credits</p>
                 </div>
-                <h3>00.00</h3>
+                <h3 id="summaryCredits">₱0.00</h3>
               </div>
             </div>
 
@@ -1105,7 +1117,7 @@
                   </svg>
                   <p> Total Entries</p>
                 </div>
-                <h3>0</h3>
+                <h3 id="summaryEntries">0</h3>
               </div>
 
               <div class="summary-card">
@@ -1121,7 +1133,7 @@
                   </svg>
                   <p>Balance Status</p>
                 </div>
-                <h3>-</h3>
+                <h3 id="summaryStatus">-</h3>
               </div>
             </div>
           </div>
@@ -1202,11 +1214,115 @@
   </div>
 
   <script>
-
+    // ===== Petsa sa navbar =====
     const options = { month: "long", day: "numeric", year: "numeric" };
-    document.getElementById("currentDate").textContent =
-      new Date().toLocaleDateString("en-US", options);
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString("en-US", options);
 
+    // ===== Basahin ang lahat ng journal entries na na-save sa browser =====
+    // Ang bawat entry ay may date, description, source, group, at lines (ang mga account na tinamaan).
+    function loadJournal() {
+      try { return JSON.parse(localStorage.getItem("crtJournal")) || []; }
+      catch (e) { return []; }
+    }
+
+    // 7000 -> "₱7,000.00"
+    function peso(n) {
+      return (n < 0 ? "-" : "") + "₱" + Math.abs(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // "2026-10-31" -> "Oct 31, 2026"
+    function formatDate(iso) {
+      const [y, m, d] = iso.split("-").map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
+
+    // Para hindi masira ng text na tinype ng user ang HTML
+    function esc(s) {
+      return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    }
+
+    // ===== Total debit at credit ng bawat account =====
+    // Pinagsasama ang lahat ng lines na iisa ang account code. Ito ang "ledger" ng system.
+    function getBalances() {
+      const accounts = {};
+      loadJournal().forEach(entry => {
+        entry.lines.forEach(l => {
+          if (!accounts[l.code]) accounts[l.code] = { code: l.code, name: l.name, type: l.type, debit: 0, credit: 0 };
+          accounts[l.code].debit += l.debit;
+          accounts[l.code].credit += l.credit;
+        });
+      });
+      return Object.values(accounts).sort((a, b) => a.code - b.code);
+    }
+
+    // Balance ng isang account. Asset at Expense ay tumataas sa debit (debit - credit),
+    // ang iba (Liability, Equity, Revenue) ay tumataas sa credit (credit - debit).
+    function balanceOf(a) {
+      const debitNormal = a.type === "Asset" || a.type === "Expense";
+      return Math.round((debitNormal ? a.debit - a.credit : a.credit - a.debit) * 100) / 100;
+    }
+
+    // Total ng lahat ng account na iisa ang type, halimbawa total ng lahat ng "Asset"
+    function totalOf(type) {
+      const sum = getBalances().filter(a => a.type === type).reduce((t, a) => t + balanceOf(a), 0);
+      return Math.round(sum * 100) / 100;
+    }
+
+    // ===== General Journal =====
+    let currentFilter = "all";   // alin ang napiling filter ngayon
+
+    function renderJournal() {
+      // Pinakabago sa taas
+      let entries = loadJournal().sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+
+      // Filter: kapag hindi "all", ang entry na ang group ay kapareho lang ng napili ang matitira
+      if (currentFilter !== "all") entries = entries.filter(e => e.group === currentFilter);
+
+      let html = "";
+      let totalDebit = 0, totalCredit = 0;
+
+      entries.forEach(e => {
+        const n = e.lines.length;   // ilang account ang tinamaan = ilang row = rowspan
+        e.lines.forEach((l, i) => {
+          html += "<tr>";
+          if (i === 0) html += '<td rowspan="' + n + '">' + formatDate(e.date) + '</td><td rowspan="' + n + '">' + esc(e.description) + "</td>";
+          html += "<td>" + l.name + "</td>";
+          html += '<td class="num">' + (l.debit ? peso(l.debit) : "-") + '</td><td class="num">' + (l.credit ? peso(l.credit) : "-") + "</td>";
+          if (i === 0) html += '<td rowspan="' + n + '"><span class="badge badge-' + e.group + '">' + e.source + "</span></td>";
+          html += "</tr>";
+          totalDebit += l.debit;
+          totalCredit += l.credit;
+        });
+      });
+
+      if (entries.length === 0) html = '<tr><td colspan="6" class="empty">No records yet</td></tr>';
+      document.getElementById("journalRows").innerHTML = html;
+
+      // Summary cards
+      totalDebit = Math.round(totalDebit * 100) / 100;
+      totalCredit = Math.round(totalCredit * 100) / 100;
+      document.getElementById("summaryDebits").textContent = peso(totalDebit);
+      document.getElementById("summaryCredits").textContent = peso(totalCredit);
+      document.getElementById("summaryEntries").textContent = entries.length;
+
+      // Balanced kapag pantay ang total debit at total credit
+      const status = document.getElementById("summaryStatus");
+      if (entries.length === 0) { status.textContent = "-"; status.className = ""; }
+      else if (totalDebit === totalCredit) { status.textContent = "Balanced"; status.className = "status-ok"; }
+      else { status.textContent = "Not Balanced"; status.className = "status-bad"; }
+    }
+
+    // Kapag pinindot ang filter button: ilipat ang "active", baguhin ang filter, i-render ulit
+    document.querySelectorAll(".filter-box button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-box button").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        renderJournal();
+      });
+    });
+
+    renderJournal();
   </script>
 
 </body>
