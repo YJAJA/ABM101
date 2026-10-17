@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard</title>
+  <title>Transaction | CRT Financial System</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -665,13 +665,13 @@
       .table-box td {
         font-size: 13px;
       }
-
-      .input-row {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-      }
     }
+  
+    /* ===== Idinagdag para sa JS ===== */
+    .hidden { display: none; }
+    .form-msg { margin-bottom: 10px; font-size: 14px; }
+    .form-msg.ok { color: rgb(22, 128, 61); }
+    .form-msg.error { color: rgb(220, 38, 38); }
   </style>
 </head>
 
@@ -681,7 +681,7 @@
   <aside class="sidebar">
 
     <div class="logo-box">
-      <img src="imgsource/crtlogo.png">
+      <img src="imgsrc/crtlogo.png">
 
       <p>CRT Financial<br>System</p>
     </div>
@@ -755,7 +755,7 @@
             <line x1="3" x2="21" y1="9" y2="9" />
             <line x1="3" x2="21" y1="15" y2="15" />
             <line x1="9" x2="9" y1="9" y2="21" />
-            <line x1="15" wx2="15" y1="9" y2="21" />
+            <line x1="15" x2="15" y1="9" y2="21" />
           </svg>
           <span>Financial Statements</span>
         </a>
@@ -830,7 +830,7 @@
             <div class="input-row-box">
               <h4>Date</h4>
               <div class="input-border">
-                <input type="date" required>
+                <input type="date" id="transDate" required>
               </div>
             </div>
 
@@ -892,16 +892,24 @@
 
           <h4>Amount</h4>
           <div class="input-border">
-            <input type="text" placeholder="0.00">
+            <input type="number" id="transAmount" placeholder="0.00" min="0" step="0.01">
+          </div>
+
+          <div id="paidBox" class="hidden">
+            <h4>Amount Paid</h4>
+            <div class="input-border">
+              <input type="number" id="transPaid" placeholder="0.00" min="0" step="0.01">
+            </div>
           </div>
 
           <h4>Description</h4>
           <div class="input-border">
-            <input type="text" placeholder="e.g. Computer Repair Service">
+            <input type="text" id="transDesc" placeholder="e.g. Computer Repair Service">
           </div>
 
+          <p id="formMsg" class="form-msg"></p>
           <div class="btn-box">
-            <button>
+            <button id="addBtn">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                 class="lucide lucide-save-plus preview-icon">
@@ -971,23 +979,14 @@
 
           <div class="table-box">
             <table>
-              <tr>
-                <th>Account</th>
-                <th>Debit</th>
-                <th>Credit</th>
-              </tr>
-
-              <tr>
-                <td>Cash</td>
-                <td>1,500</td>
-                <td>-</td>
-              </tr>
-
-              <tr>
-                <td>Service Revenue</td>
-                <td>-</td>
-                <td>1,500</td>
-              </tr>
+              <thead>
+                <tr>
+                  <th>Account</th>
+                  <th>Debit</th>
+                  <th>Credit</th>
+                </tr>
+              </thead>
+              <tbody id="previewRows"></tbody>
             </table>
           </div>
 
@@ -1002,11 +1001,165 @@
   </div>
 
   <script>
-
+    // ===== Petsa sa navbar =====
     const options = { month: "long", day: "numeric", year: "numeric" };
-    document.getElementById("currentDate").textContent =
-      new Date().toLocaleDateString("en-US", options);
-      
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString("en-US", options);
+
+    // ===== Listahan ng accounts (galing sa chart of accounts ni sir): code -> [pangalan, type] =====
+    const ACCOUNTS = {
+      "101": ["Cash", "Asset"], "112": ["Accounts Receivable", "Asset"], "115": ["Interest Receivable", "Asset"],
+      "122": ["Supplies", "Asset"], "123": ["Prepaid Rent", "Asset"], "151": ["Equipment", "Asset"],
+      "201": ["Accounts Payable", "Liability"], "203": ["Salaries Payable", "Liability"], "205": ["Interest Payable", "Liability"],
+      "208": ["Unearned Service Revenue", "Liability"], "215": ["Loan Payable", "Liability"],
+      "301": ["Owner's Capital", "Equity"], "302": ["Owner's Drawings", "Equity"],
+      "401": ["Service Revenue", "Revenue"], "402": ["Interest Income", "Revenue"], "499": ["Other Income", "Revenue"],
+      "501": ["Taxes and Licenses Expense", "Expense"], "502": ["Salaries Expense", "Expense"],
+      "504": ["Utilities Expense", "Expense"], "505": ["Rent Expense", "Expense"],
+      "512": ["Interest Expense", "Expense"], "599": ["Other Expenses", "Expense"]
+    };
+
+    // ===== Rules: ano ang i-debit at i-credit sa bawat transaction type =====
+    // dr = account na idedebit, cr = account na icre-credit
+    // side = alin sa dalawa ang "Cash" ("dr" o "cr"). Ito ang napapalitan kapag On Account o Partial
+    // alt  = account na papalit sa Cash kapag hindi buo ang bayad (A/R kung may maniningil, A/P kung may babayaran)
+    // side null = laging cash lang (halimbawa pagbabayad ng utang, hindi pwedeng On Account)
+    // group = pang-filter sa Journal, source = lalabas sa Source column
+    const RULES = {
+      service_revenue: { dr: "101", cr: "401", side: "dr", alt: "112", group: "revenue", source: "Service Revenue", label: "Service revenue" },
+      advance_payment: { dr: "101", cr: "208", side: null, group: "liability", source: "Advance Payment", label: "Advance payment" },
+      collect_ar:      { dr: "101", cr: "112", side: null, group: "asset", source: "Payment Received", label: "Collection from customer" },
+      interest_income: { dr: "101", cr: "402", side: "dr", alt: "115", group: "revenue", source: "Interest Income", label: "Interest income" },
+      other_income:    { dr: "101", cr: "499", side: "dr", alt: "112", group: "revenue", source: "Other Income", label: "Other income" },
+      invest:          { dr: "101", cr: "301", side: null, group: "equity", source: "Owner Investment", label: "Owner investment" },
+      withdraw:        { dr: "302", cr: "101", side: null, group: "equity", source: "Owner Withdrawal", label: "Owner withdrawal" },
+      buy_supplies:    { dr: "122", cr: "101", side: "cr", alt: "201", group: "asset", source: "Purchase of Supplies", label: "Purchase of supplies" },
+      buy_equipment:   { dr: "151", cr: "101", side: "cr", alt: "201", group: "asset", source: "Purchase of Equipment", label: "Purchase of equipment" },
+      prepaid_rent:    { dr: "123", cr: "101", side: "cr", alt: "201", group: "asset", source: "Prepaid Rent", label: "Prepaid rent" },
+      pay_salaries:    { dr: "502", cr: "101", side: "cr", alt: "203", group: "expense", source: "Expense", label: "Salaries" },
+      pay_rent:        { dr: "505", cr: "101", side: "cr", alt: "201", group: "expense", source: "Expense", label: "Rent" },
+      pay_utilities:   { dr: "504", cr: "101", side: "cr", alt: "201", group: "expense", source: "Expense", label: "Utilities" },
+      pay_taxes:       { dr: "501", cr: "101", side: "cr", alt: "201", group: "expense", source: "Expense", label: "Taxes and licenses" },
+      pay_interest:    { dr: "512", cr: "101", side: "cr", alt: "205", group: "expense", source: "Expense", label: "Interest" },
+      pay_other:       { dr: "599", cr: "101", side: "cr", alt: "201", group: "expense", source: "Expense", label: "Other expense" },
+      borrow:          { dr: "101", cr: "215", side: null, group: "liability", source: "Loan Received", label: "Loan received" },
+      pay_loan:        { dr: "215", cr: "101", side: null, group: "liability", source: "Loan Payment", label: "Loan payment" },
+      pay_ap:          { dr: "201", cr: "101", side: null, group: "liability", source: "Payment to Supplier", label: "Payment to supplier" }
+    };
+
+    const METHOD_NAMES = { cash: "cash", on_account: "on account", partial: "partial payment" };
+
+    const $ = id => document.getElementById(id);   // shortcut para hindi paulit-ulit ang getElementById
+
+    function round2(n) { return Math.round(n * 100) / 100; }
+
+    function peso(n) {
+      return "₱" + n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Petsa ngayon bilang "2026-10-31" (para sa date input)
+    function todayISO() {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+
+    function line(code, debit, credit) {
+      return { code: code, name: ACCOUNTS[code][0], type: ACCOUNTS[code][1], debit: debit, credit: credit };
+    }
+
+    // ===== Ang pinaka-puso ng system: gumawa ng journal lines =====
+    // Una: simple muna. Ang buong amount ay naka-debit sa dr account at naka-credit sa cr account.
+    // Kapag On Account o Partial: ang "Cash" na bahagi ay hinahati. Ang hindi pa nababayaran (owed)
+    // ay napupunta sa alt account (A/R o A/P), at ang nabayaran na ay sa Cash.
+    function buildLines(rule, method, amount, paid) {
+      let debits = [[rule.dr, amount]];
+      let credits = [[rule.cr, amount]];
+
+      if (rule.side && method !== "cash") {
+        const owed = method === "on_account" ? amount : amount - Math.min(paid, amount);
+        const split = [["101", round2(amount - owed)], [rule.alt, round2(owed)]];
+        if (rule.side === "dr") debits = split; else credits = split;
+      }
+
+      const lines = [];
+      debits.forEach(([code, v]) => lines.push(line(code, v, 0)));
+      credits.forEach(([code, v]) => lines.push(line(code, 0, v)));
+
+      // Itago ang account na zero ang halaga (halimbawa Cash kapag On Account), maliban sa preview na wala pang amount
+      return amount > 0 ? lines.filter(l => l.debit || l.credit) : lines;
+    }
+
+    // ===== Update ng form at Journal Preview tuwing may binago ang user =====
+    function updateForm() {
+      const rule = RULES[$("transactionType").value];
+
+      // Kapag cash lang ang pwede sa type na ito, i-lock ang Payment Status sa Cash
+      const locked = rule.side === null;
+      if (locked) $("paymentMethod").value = "cash";
+      $("paymentMethod").disabled = locked;
+
+      const method = $("paymentMethod").value;
+      $("paidBox").classList.toggle("hidden", method !== "partial");   // lalabas lang ang Amount Paid kapag Partial
+
+      const amount = Number($("transAmount").value) || 0;
+      const paid = Number($("transPaid").value) || 0;
+      const lines = buildLines(rule, method, amount, paid);
+
+      $("previewRows").innerHTML = lines.map(l =>
+        "<tr><td>" + l.name + "</td><td>" + (l.debit ? peso(l.debit) : "-") + "</td><td>" + (l.credit ? peso(l.credit) : "-") + "</td></tr>"
+      ).join("");
+    }
+
+    function showMessage(text, ok) {
+      $("formMsg").textContent = text;
+      $("formMsg").className = "form-msg " + (ok ? "ok" : "error");
+    }
+
+    // ===== I-save ang transaction =====
+    function saveTransaction() {
+      const typeKey = $("transactionType").value;
+      const rule = RULES[typeKey];
+      const method = $("paymentMethod").value;
+      const date = $("transDate").value;
+      const amount = round2(Number($("transAmount").value) || 0);
+      const paid = round2(Number($("transPaid").value) || 0);
+      const desc = $("transDesc").value.trim() || rule.label;
+
+      // Validation: i-check muna bago i-save
+      if (!date) return showMessage("Please enter the date.", false);
+      if (amount <= 0) return showMessage("Amount must be greater than 0.", false);
+      if (method === "partial" && (paid <= 0 || paid >= amount))
+        return showMessage("Amount Paid must be more than 0 and less than the total amount.", false);
+
+      const entry = {
+        id: Date.now(),
+        date: date,
+        description: desc + " (" + METHOD_NAMES[method] + ")",
+        source: rule.source,
+        group: rule.group,
+        lines: buildLines(rule, method, amount, paid)
+      };
+
+      // Kunin ang mga dating entry, dagdagan, tapos i-save ulit
+      let journal = [];
+      try { journal = JSON.parse(localStorage.getItem("crtJournal")) || []; } catch (e) {}
+      journal.push(entry);
+      localStorage.setItem("crtJournal", JSON.stringify(journal));
+
+      // Linisin ang form
+      $("transAmount").value = "";
+      $("transPaid").value = "";
+      $("transDesc").value = "";
+      updateForm();
+      // Pagkatapos mag-save, ilipat sa General Journal para makita agad ang bagong entry
+      window.location.href = "journal.html";
+    }
+
+    ["transactionType", "paymentMethod"].forEach(id => $(id).addEventListener("change", updateForm));
+    ["transAmount", "transPaid"].forEach(id => $(id).addEventListener("input", updateForm));
+    $("addBtn").addEventListener("click", saveTransaction);
+
+    $("transDate").value = todayISO();
+    updateForm();
   </script>
 
 </body>
