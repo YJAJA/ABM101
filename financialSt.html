@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard</title>
+  <title>Financial Statements | CRT Financial System</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -342,7 +342,7 @@
     @media (max-width: 1399px) {
 
       .content {
-        flex-direction: column-reverse;
+        flex-direction: column;
 
       }
 
@@ -472,7 +472,7 @@
   <aside class="sidebar">
 
     <div class="logo-box">
-      <img src="imgsource/crtlogo.png">
+      <img src="/imgsrc/crtlogo.png">
 
       <p>CRT Financial<br>System</p>
     </div>
@@ -546,7 +546,7 @@
             <line x1="3" x2="21" y1="9" y2="9" />
             <line x1="3" x2="21" y1="15" y2="15" />
             <line x1="9" x2="9" y1="9" y2="21" />
-            <line x1="15" wx2="15" y1="9" y2="21" />
+            <line x1="15" x2="15" y1="9" y2="21" />
           </svg>
           <span>Financial Statements</span>
         </a>
@@ -767,29 +767,105 @@
   </div>
 
   <script>
-
+    // ===== Petsa sa navbar =====
     const options = { month: "long", day: "numeric", year: "numeric" };
-    document.getElementById("currentDate").textContent =
-      new Date().toLocaleDateString("en-US", options);
+    document.getElementById("currentDate").textContent = new Date().toLocaleDateString("en-US", options);
 
-
-    function updateFinancialDates() {
-      const today = new Date();
-
-      const formattedDate = today.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric"
-      });
-
-      document.querySelectorAll(".live-report-date").forEach(element => {
-        element.textContent = formattedDate;
-      });
+    // ===== Basahin ang lahat ng journal entries na na-save sa browser =====
+    // Ang bawat entry ay may date, description, source, group, at lines (ang mga account na tinamaan).
+    function loadJournal() {
+      try { return JSON.parse(localStorage.getItem("crtJournal")) || []; }
+      catch (e) { return []; }
     }
 
-    updateFinancialDates();
+    // 7000 -> "₱7,000.00"
+    function peso(n) {
+      return (n < 0 ? "-" : "") + "₱" + Math.abs(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
+    // "2026-10-31" -> "Oct 31, 2026"
+    function formatDate(iso) {
+      const [y, m, d] = iso.split("-").map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    }
 
+    // Para hindi masira ng text na tinype ng user ang HTML
+    function esc(s) {
+      return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    }
+
+    // ===== Total debit at credit ng bawat account =====
+    // Pinagsasama ang lahat ng lines na iisa ang account code. Ito ang "ledger" ng system.
+    function getBalances() {
+      const accounts = {};
+      loadJournal().forEach(entry => {
+        entry.lines.forEach(l => {
+          if (!accounts[l.code]) accounts[l.code] = { code: l.code, name: l.name, type: l.type, debit: 0, credit: 0 };
+          accounts[l.code].debit += l.debit;
+          accounts[l.code].credit += l.credit;
+        });
+      });
+      return Object.values(accounts).sort((a, b) => a.code - b.code);
+    }
+
+    // Balance ng isang account. Asset at Expense ay tumataas sa debit (debit - credit),
+    // ang iba (Liability, Equity, Revenue) ay tumataas sa credit (credit - debit).
+    function balanceOf(a) {
+      const debitNormal = a.type === "Asset" || a.type === "Expense";
+      return Math.round((debitNormal ? a.debit - a.credit : a.credit - a.debit) * 100) / 100;
+    }
+
+    // Total ng lahat ng account na iisa ang type, halimbawa total ng lahat ng "Asset"
+    function totalOf(type) {
+      const sum = getBalances().filter(a => a.type === type).reduce((t, a) => t + balanceOf(a), 0);
+      return Math.round(sum * 100) / 100;
+    }
+
+    // ===== Financial Statements =====
+    // Ilista ang mga account ng isang type na may laman (ang zero ay hindi ipinapakita)
+    function rowsFor(type) {
+      return getBalances().filter(a => a.type === type && balanceOf(a) !== 0)
+        .map(a => ({ name: a.name, amount: balanceOf(a) }));
+    }
+
+    function renderRows(tbodyId, rows) {
+      document.getElementById(tbodyId).innerHTML = rows.length === 0
+        ? '<tr><td colspan="2" class="empty">No records yet</td></tr>'
+        : rows.map(r => "<tr><td>" + r.name + '</td><td class="amount">' + peso(r.amount) + "</td></tr>").join("");
+    }
+
+    function setText(id, n) { document.getElementById(id).textContent = peso(n); }
+
+    // ----- Income Statement: Net Income = Revenues - Expenses -----
+    const totalRevenues = totalOf("Revenue");
+    const totalExpenses = totalOf("Expense");
+    const netIncome = Math.round((totalRevenues - totalExpenses) * 100) / 100;
+
+    renderRows("revenueRows", rowsFor("Revenue"));
+    renderRows("expenseRows", rowsFor("Expense"));
+    setText("totalRevenues", totalRevenues);
+    setText("totalExpenses", totalExpenses);
+    setText("netIncome", netIncome);
+
+    // ----- Balance Sheet: Assets = Liabilities + Equity -----
+    // Equity = Capital - Drawings + Net Income (ang Drawings ay negative na kasi debit siya)
+    const equityRows = rowsFor("Equity");
+    if (netIncome !== 0) equityRows.push({ name: "Net Income", amount: netIncome });
+    const totalEquity = Math.round((totalOf("Equity") + netIncome) * 100) / 100;
+    const totalLiabilities = totalOf("Liability");
+
+    renderRows("assetRows", rowsFor("Asset"));
+    renderRows("liabilityRows", rowsFor("Liability"));
+    renderRows("equityRows", equityRows);
+    setText("totalAssets", totalOf("Asset"));
+    setText("totalLiabilities", totalLiabilities);
+    setText("totalEquity", totalEquity);
+    setText("totalLiabEquity", Math.round((totalLiabilities + totalEquity) * 100) / 100);
+
+    // Petsa sa "As of" at "For the period ended"
+    document.querySelectorAll(".live-report-date").forEach(el => {
+      el.textContent = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    });
   </script>
 
 </body>
