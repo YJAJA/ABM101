@@ -23,7 +23,7 @@
 
     /* Tinanggal ang display: flex dito */
     body {
-     
+
       font-family: "Manrope", 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
@@ -201,7 +201,7 @@
       display: flex;
       gap: 20px;
       padding: 24px;
-      
+
     }
 
 
@@ -218,7 +218,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-        animation: slideUp 1.7s ease;
+      animation: slideUp 1.7s ease;
     }
 
     .sec-1 .journal-title h2 {
@@ -231,8 +231,12 @@
     }
 
     .filter-box {
+
       margin-bottom: 10px;
       display: flex;
+
+
+
       align-items: center;
       gap: 10px;
       border: solid 1px rgb(205, 205, 205);
@@ -240,15 +244,12 @@
       border-radius: 8px;
     }
 
-    .filter-1 {
+    .filter {
       display: flex;
       gap: 10px;
     }
 
-    .filter-2 {
-      display: flex;
-      gap: 10px;
-    }
+
 
     .filter-box label {
       color: rgb(40, 40, 40)
@@ -264,7 +265,7 @@
       border-radius: 6px;
       border: solid 1px rgb(205, 205, 205);
       background-color: white;
-      
+
     }
 
     .filter-box .svg-all {
@@ -294,6 +295,7 @@
     .filter-title {
       font-size: 15px;
     }
+
     .filter-box .btn-svg-1:hover {
       transform: translateY(-5px);
       transition: 0.3s;
@@ -302,7 +304,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-       border: 1px solid rgb(73, 73, 194);
+      border: 1px solid rgb(73, 73, 194);
     }
 
     .filter-box .btn-svg-2:hover {
@@ -313,7 +315,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-       border: 1px solid rgb(3, 219, 3);
+      border: 1px solid rgb(3, 219, 3);
     }
 
     .filter-box .btn-svg-3:hover {
@@ -324,7 +326,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-       border: 1px solid rgb(246, 20, 0);
+      border: 1px solid rgb(246, 20, 0);
     }
 
     .filter-box .btn-svg-4:hover {
@@ -335,7 +337,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-       border: 1px solid rgb(0, 0, 255);
+      border: 1px solid rgb(0, 0, 255);
     }
 
     .filter-box .btn-svg-5:hover {
@@ -346,7 +348,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-       border: 1px solid rgb(244, 94, 0);
+      border: 1px solid rgb(244, 94, 0);
     }
 
     .filter-box .btn-svg-6:hover {
@@ -357,7 +359,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-       border: 1px solid rgb(255, 221, 0);
+      border: 1px solid rgb(255, 221, 0);
     }
 
 
@@ -379,7 +381,7 @@
       color: rgb(255, 255, 255);
       font-size: 14px;
       border: none;
-     
+
     }
 
     .sec-1 table td {
@@ -422,7 +424,7 @@
         0 5px 5px rgba(0, 0, 0, 0.04),
         -5px 0 5px rgba(0, 0, 0, 0.04),
         5px 0 5px rgba(0, 0, 0, 0.04);
-        animation: slideUp 2s ease;
+      animation: slideUp 2s ease;
     }
 
     .sec-2 .summary-box {
@@ -561,7 +563,7 @@
 
     .btn-groups .btn-1:hover {
       transform: scale(1.02);
-     
+
     }
 
     .reminder-box {
@@ -657,7 +659,7 @@
 
       .sec-2 {
         flex-direction: column;
-        
+
       }
 
       .quick-box {
@@ -804,22 +806,62 @@
 
       }
 
-      .filter-box {
+      .filter {
         flex-wrap: wrap;
       }
     }
-  
+
     /* ===== Idinagdag para sa JS ===== */
-    .table-scroll td.num { text-align: right; }
-    .filter-box button.active { background-color: rgb(241, 241, 255); border: 1px solid rgb(73, 73, 194); color: rgb(73, 73, 194); }
-    .badge { display: inline-block; padding: 5px 12px; border-radius: 50px; font-size: 13px; font-weight: 600; }
-    .badge-revenue { background: rgb(220, 252, 231); color: rgb(22, 128, 61); }
-    .badge-expense { background: rgb(254, 226, 226); color: rgb(220, 38, 38); }
-    .badge-asset { background: rgb(219, 234, 254); color: rgb(37, 99, 235); }
-    .badge-liability { background: rgb(254, 243, 199); color: rgb(180, 83, 9); }
-    .badge-equity { background: rgb(233, 231, 255); color: rgb(73, 73, 194); }
-    .status-ok { color: rgb(22, 128, 61); }
-    .status-bad { color: rgb(220, 38, 38); }
+    .table-scroll td.num {
+      text-align: right;
+    }
+
+    .filter-box button.active {
+      background-color: rgb(241, 241, 255);
+      border: 1px solid rgb(73, 73, 194);
+      color: rgb(73, 73, 194);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .badge-revenue {
+      background: rgb(220, 252, 231);
+      color: rgb(22, 128, 61);
+    }
+
+    .badge-expense {
+      background: rgb(254, 226, 226);
+      color: rgb(220, 38, 38);
+    }
+
+    .badge-asset {
+      background: rgb(219, 234, 254);
+      color: rgb(37, 99, 235);
+    }
+
+    .badge-liability {
+      background: rgb(254, 243, 199);
+      color: rgb(180, 83, 9);
+    }
+
+    .badge-equity {
+      background: rgb(233, 231, 255);
+      color: rgb(73, 73, 194);
+    }
+
+    .status-ok {
+      color: rgb(22, 128, 61);
+    }
+
+    .status-bad {
+      color: rgb(220, 38, 38);
+    }
   </style>
 </head>
 
@@ -829,7 +871,7 @@
   <aside class="sidebar">
 
     <div class="logo-box">
-      <img src="imgsource/crtlogo.png">
+      <img src="/imgsrc/crtlogo.png">
 
       <p>CRT Financial<br>System</p>
     </div>
@@ -962,7 +1004,7 @@
         <div class="filter-box">
           <label class="filter-title">Filter by:</label>
 
-          <div class="filter-1">
+          <div class="filter">
             <button class="btn-svg-1 active" data-filter="all">
               <svg class="svg-all" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -994,9 +1036,6 @@
               </svg>
               <label>Expense</label>
             </button>
-          </div>
-
-          <div class="filter-2">
             <button class="btn-svg-4" data-filter="asset">
               <svg class="svg-asset" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -1030,9 +1069,6 @@
               <label>Equity</label>
             </button>
           </div>
-
-
-
         </div>
 
 
@@ -1040,13 +1076,13 @@
           <table>
             <thead>
               <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Account</th>
-              <th>Debit</th>
-              <th>Credit</th>
-              <th>Source</th>
-            </tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Account</th>
+                <th>Debit</th>
+                <th>Credit</th>
+                <th>Source</th>
+              </tr>
             </thead>
 
             <tbody id="journalRows">
@@ -1054,7 +1090,7 @@
                 <td colspan="6" class="empty">No records yet</td>
               </tr>
             </tbody>
-            
+
           </table>
         </div>
       </section>
@@ -1154,33 +1190,33 @@
           <div class="btn-groups">
             <a href="transaction.html">
               <button class="btn-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="lucide lucide-square-plus preview-icon">
-                <rect width="18" height="18" x="3" y="3" rx="2" />
-                <path d="M8 12h8" />
-                <path d="M12 8v8" />
-              </svg>
-              <label>Add New Transaction</label>
-            </button>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-square-plus preview-icon">
+                  <rect width="18" height="18" x="3" y="3" rx="2" />
+                  <path d="M8 12h8" />
+                  <path d="M12 8v8" />
+                </svg>
+                <label>Add New Transaction</label>
+              </button>
             </a>
-            
+
             <a href="financialSt.html">
               <button class="btn-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="lucide lucide-file-text preview-icon">
-                <path
-                  d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
-                <path d="M14 2v5a1 1 0 0 0 1 1h5" />
-                <path d="M10 9H8" />
-                <path d="M16 13H8" />
-                <path d="M16 17H8" />
-              </svg>
-              <label>View Financial Reports</label>
-            </button>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  class="lucide lucide-file-text preview-icon">
+                  <path
+                    d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
+                  <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+                  <path d="M10 9H8" />
+                  <path d="M16 13H8" />
+                  <path d="M16 17H8" />
+                </svg>
+                <label>View Financial Reports</label>
+              </button>
             </a>
-            
+
           </div>
 
           <div class="reminder-box">
