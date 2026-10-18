@@ -191,6 +191,15 @@
       padding: 24px;
     }
 
+    .title-box h3 {
+      color: rgb(73, 73, 194);
+    }
+
+    .title-box p {
+      color: gray;
+      font-size: 14px;
+    }
+
     /* ===== CARDS SA TAAS (sec-1) ===== */
     .sec-1 {
       display: flex;
@@ -201,12 +210,14 @@
       display: flex;
       flex: 1;
       gap: 15px;
-      flex-wrap: wrap;           /* bababa ang card kapag masikip */
+      flex-wrap: wrap;
+      /* bababa ang card kapag masikip */
     }
 
     .cards {
       display: flex;
-      flex: 1 1 220px;           /* minimum na lapad ng card ay 220px */
+      flex: 1 1 220px;
+      /* minimum na lapad ng card ay 220px */
       align-items: center;
       gap: 12px;
       padding: 15px;
@@ -224,7 +235,8 @@
       color: rgb(73, 73, 194);
       padding: 12px;
       border-radius: 8px;
-      flex-shrink: 0;            /* hindi mapipiga ang icon */
+      flex-shrink: 0;
+      /* hindi mapipiga ang icon */
     }
 
     .cards h5 {
@@ -240,9 +252,37 @@
     /* ===== RECENT TRANSACTIONS (sec-2) ===== */
     .sec-2 {
       display: flex;
+      gap: 20px;
+      /* espasyo ng graph at recent transactions */
       animation: slideUp 2s ease;
     }
 
+    .chart-box {
+      flex: 1.2;
+    }
+
+    /* medyo mas malapad ang graph */
+    .recent-box {
+      flex: 1;
+    }
+
+    .chart-wrap {
+      height: 300px;
+      position: relative;
+    }
+
+    /* kailangan ng taas para lumabas ang graph */
+
+    .chart-empty {
+      display: none;
+      /* lalabas lang kapag walang data */
+      text-align: center;
+      color: gray;
+      font-style: italic;
+      padding: 25px;
+    }
+
+    .chart-box,
     .recent-box {
       flex: 1;
       min-width: 0;
@@ -393,6 +433,33 @@
         font-size: 12px;
       }
     }
+
+    /* ===== Responsive ng graph at recent transactions ===== */
+    @media (max-width: 1200px) {
+      .sec-2 {
+        flex-direction: column;
+      }
+
+      /* magpapatong ang dalawang card */
+    }
+
+    @media (max-width: 768px) {
+
+      .chart-box,
+      .recent-box {
+        padding: 15px;
+      }
+
+      .chart-wrap {
+        height: 240px;
+      }
+
+      .recent-table {
+        min-width: 460px;
+      }
+
+      /* mag-i-scroll pahalang ang table sa phone, hindi pipigain */
+    }
   </style>
 </head>
 
@@ -479,7 +546,7 @@
     </ul>
 
     <div class="logout-box">
-      <a href="#">
+      <a href="main.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -516,9 +583,15 @@
     </header>
 
     <main class="content">
+      <div class="title-box">
+        <h3>Financial Overview</h3>
+        <p>A quick look at your assets, liabilities, equity, and income.</p>
+      </div>
 
       <!-- ================= CARDS ================= -->
       <section class="sec-1">
+
+
         <div class="card-box">
 
           <div class="cards">
@@ -580,6 +653,20 @@
 
       <!-- ================= RECENT TRANSACTIONS ================= -->
       <section class="sec-2">
+
+        <!-- GRAPH (kaliwa) -->
+        <div class="chart-box">
+          <div class="recent-title">
+            <h3>Net Income Overview</h3>
+            <p id="chartRange">No data yet</p>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="incomeChart"></canvas>
+          </div>
+          <p id="chartEmpty" class="chart-empty">Add a transaction to see your graph</p>
+        </div>
+
+        <!-- RECENT TRANSACTIONS (kanan) -->
         <div class="recent-box">
 
           <div class="recent-title">
@@ -613,6 +700,7 @@
 
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script>
     // ===== Petsa sa navbar =====
     const options = { month: "long", day: "numeric", year: "numeric" };
@@ -684,6 +772,59 @@
         return "<tr><td>" + formatDate(e.date) + "</td><td>" + esc(e.description) + "</td><td>" + e.source +
           '</td><td class="amount">' + peso(amount) + "</td></tr>";
       }).join("");
+    }
+
+    // ===== Graph: Net Income sa paglipas ng panahon =====
+    // 1) Bawat entry, kunin ang epekto nito sa kita: Revenue (credit - debit) tumataas,
+    //    Expense (debit - credit) bumababa.
+    // 2) Pagsamahin ang mga entry na magkapareho ang petsa.
+    // 3) Idagdag ang bawat araw sa naunang total (running total), kaya tataas o bababa ang linya.
+    const daily = {};   // halimbawa: { "2026-10-16": 1500, "2026-10-17": -500 }
+
+    loadJournal().forEach(e => {
+      let change = 0;
+      e.lines.forEach(l => {
+        if (l.type === "Revenue") change += l.credit - l.debit;
+        if (l.type === "Expense") change -= l.debit - l.credit;
+      });
+      daily[e.date] = (daily[e.date] || 0) + change;
+    });
+
+    const dates = Object.keys(daily).sort();   // ang "2026-10-16" ay madaling i-sort bilang text
+    let running = 0;
+    const totals = dates.map(d => {
+      running += daily[d];
+      return Math.round(running * 100) / 100;
+    });
+
+    if (dates.length === 0 || typeof Chart === "undefined") {
+      // Walang data (o walang internet para sa Chart.js): itago ang graph at ipakita ang mensahe
+      document.querySelector(".chart-wrap").style.display = "none";
+      document.getElementById("chartEmpty").style.display = "block";
+      if (dates.length > 0) document.getElementById("chartEmpty").textContent = "The graph needs an internet connection";
+    } else {
+      document.getElementById("chartRange").textContent =
+        formatDate(dates[0]) + (dates.length > 1 ? " – " + formatDate(dates[dates.length - 1]) : "");
+
+      new Chart(document.getElementById("incomeChart"), {
+        type: "line",
+        data: {
+          labels: dates.map(formatDate),
+          datasets: [{
+            label: "Net Income",
+            data: totals,
+            borderColor: "rgb(73, 73, 194)",
+            backgroundColor: "rgba(73, 73, 194, 0.1)",
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } }
+        }
+      });
     }
   </script>
 
