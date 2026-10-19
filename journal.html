@@ -397,8 +397,8 @@
 
     .table-scroll {
       overflow: auto;
-      border: solid 1px rgb(206, 206, 206);
-      border-top: solid 1px rgb(206, 206, 206);
+      
+      
       max-height: 455px;
       border-radius: 10px;
 
@@ -750,6 +750,10 @@
         font-size: 13px;
       }
 
+      .content {
+        padding: 0;
+      }
+
       .logout-box a:hover {
         color: red;
         transform: translateX(0px);
@@ -760,12 +764,23 @@
         font-size: 14px;
       }
 
-      .summary-card {}
+      .sec-1,
+      .sec-2 {
+        box-shadow: none;
+        border: none;
+      }
 
       .cards-set {
-        
+
         display: block;
 
+      }
+
+      .quick-box {
+        border: none;
+        box-shadow: none;
+        margin-bottom: -20px;
+        
       }
 
       .cards {
@@ -961,7 +976,7 @@
     </ul>
 
     <div class="logout-box">
-      <a href="#">
+      <a href="main.html">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
